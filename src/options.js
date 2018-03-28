@@ -1,7 +1,7 @@
 const options = {};
 
 const defaults = {
-    minLength: 2,
+    minLength: 3,
     maxResults: 3,
     multiLine: false,
     clickClose: true,

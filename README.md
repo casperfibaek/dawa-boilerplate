@@ -5,17 +5,20 @@ import dawa from './src/dawa';
 
 ```javascript
 const searchbar = dawa({
-    minLength: 3,
-    maxResults: 3,
+    minLength: 3,           // default = 3
+    maxResults: 3,          // default = 3
+    multiLine: false,       // default = false
+    clickClose: true,       // default = true
+    reverseGeocode: true,   // default = true
     themes: [
-        // 'adresser',
-        'stednavne',
-        'adgangsadresser',
-        // 'vejnavne',
-        // 'supplerendebynavne',
-        'postnumre',
-        'kommuner',
-        'sogne',
+        // 'adresser',              // default = off
+        'stednavne',                // default = on
+        'adgangsadresser',          // default = on
+        // 'vejnavne',              // default = off
+        // 'supplerendebynavne',    // default = off
+        'postnumre',                // default = on
+        'kommuner',                 // default = on
+        'sogne',                    // default = on
     ],
 });
 document.body.appendChild(searchbar);
