@@ -86,11 +86,20 @@ export default function dawa(options) {
         }
     });
 
+    searchInput.addEventListener('focus', (e) => {
+        const self = e.currentTarget;
+        const searchValue = self.value;
+
+        if (searchValue.length >= opt.minLength && resultList.childElementCount !== 0) {
+            startSearch(searchValue, searchbar);
+        }
+    });
+
     let cleared = false;
     if (opt.clickClose) {
         const outsideClickListener = (event) => {
             const removeClickListener = () => {
-                document.removeEventListener('click', outsideClickListener);
+                document.removeEventListener('mousedown', outsideClickListener);
             };
 
             if (!wrapper.contains(event.target)) {
@@ -104,7 +113,7 @@ export default function dawa(options) {
         // RESULTS CLEARED
         searchbar.addEventListener('results-cleared', () => {
             if (!cleared) {
-                document.removeEventListener('click', outsideClickListener);
+                document.removeEventListener('mousedown', outsideClickListener);
             }
             cleared = true;
         });
@@ -112,7 +121,7 @@ export default function dawa(options) {
         // RESULTS ADDED
         searchbar.addEventListener('results-added', () => {
             if (cleared) {
-                document.addEventListener('click', outsideClickListener);
+                document.addEventListener('mousedown', outsideClickListener);
             }
             cleared = false;
         });
