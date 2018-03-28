@@ -1,4 +1,4 @@
-import { createElement, clearChildren, capitalize, fireEvent, get, isVisible } from './utils';
+import { createElement, clearChildren, capitalize, fireEvent, get, isVisible, createGeojsonPoint } from './utils';
 import { setOptions, getOptions } from './options';
 import enableKeyboardSelect from './keyboard';
 import startSearch from './search';
@@ -38,27 +38,38 @@ export default function dawa(options) {
 
     geofinder.addEventListener('click', () => {
         navigator.geolocation.getCurrentPosition((position) => {
-            const coords = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-            };
+            const geometry = createGeojsonPoint({}, [
+                position.coords.longitude,
+                position.coords.latitude,
+            ]);
 
             const prelimEvent = new CustomEvent('geolocation-preliminairy', {
-                detail: coords,
+                detail: {
+                    information: false,
+                    geometry,
+                },
             });
 
             searchbar.dispatchEvent(prelimEvent);
 
             if (opt.reverseGeocode) {
-                const url = `https://dawa.aws.dk/adgangsadresser/reverse?x=${coords.longitude}&y=${coords.latitude}&struktur=mini`;
+                const url = `https://dawa.aws.dk/adgangsadresser/reverse?x=${position.coords.latitude}&y=${position.coords.longitude}&struktur=mini`;
 
                 get(url, (requestError, response) => {
                     if (requestError) { throw new Error(requestError); }
                     try {
                         const data = JSON.parse(response);
 
+                        const geometryWithAttributes = createGeojsonPoint(data, [
+                            position.coords.longitude,
+                            position.coords.latitude,
+                        ]);
+
                         const finalEvent = new CustomEvent('geolocation-final', {
-                            detail: data,
+                            detail: {
+                                geometry: geometryWithAttributes,
+                                information: data,
+                            },
                         });
 
                         searchbar.dispatchEvent(finalEvent);
@@ -105,6 +116,7 @@ export default function dawa(options) {
             if (!wrapper.contains(event.target)) {
                 if (isVisible(wrapper)) {
                     clearChildren(resultList);
+                    fireEvent(searchbar, 'results-cleared');
                     removeClickListener();
                 }
             }

@@ -1,6 +1,6 @@
 import { createElement, clearChildren, fireEvent, get } from './utils';
 import { getOptions } from './options';
-import { parseThemes } from './parse';
+import { parseThemes, preliminairyToGeometry } from './parse';
 import searchSingle from './searchSingle';
 
 let options;
@@ -20,7 +20,10 @@ function autocompleteURL(theme, searchValue) {
 function searchSingleDelegate(searchValues, row, searchbar) {
     return function internalDelegate() {
         const event = new CustomEvent('preliminairy', {
-            detail: row,
+            detail: {
+                information: row,
+                geometry: preliminairyToGeometry(searchValues.theme, row),
+            },
         });
         event.detail.theme = searchValues.theme;
         searchbar.dispatchEvent(event);

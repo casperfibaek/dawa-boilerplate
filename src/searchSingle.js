@@ -8,6 +8,7 @@ function sendEvent(geometry, information, searchValues, searchbar) {
     });
 
     event.detail.information.theme = searchValues.theme;
+    event.detail.information.value = searchValues.value;
 
     clearChildren(resultList);
     fireEvent(searchbar, 'results-cleared');

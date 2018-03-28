@@ -118,6 +118,17 @@ function fireEvent(element, event) {
     element.dispatchEvent(new Event(event));
 }
 
+function createGeojsonPoint(properties, coordinates) {
+    return {
+        type: 'Feature',
+        properties,
+        geometry: {
+            type: 'Point',
+            coordinates,
+        },
+    };
+}
+
 export {
     createElement,
     clearChildren,
@@ -127,4 +138,5 @@ export {
     getAttributes,
     get,
     isVisible,
+    createGeojsonPoint,
 };

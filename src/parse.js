@@ -1,3 +1,5 @@
+import { createGeojsonPoint } from './utils';
+
 function singleURL(searchValues) {
     if (searchValues.theme === 'vejnavne') { return false; }
     if (searchValues.theme === 'supplerendebynavne') { return false; }
@@ -7,6 +9,31 @@ function singleURL(searchValues) {
     const format = '&noformat&format=geojson';
 
     return `${theme}/${uid}?${format}`;
+}
+
+function preliminairyToGeometry(theme, row) {
+    let geometry;
+    switch (theme) {
+    case 'adgangsadresser':
+        geometry = false; break;
+    case 'adresser':
+        geometry = false; break;
+    case 'vejnavne':
+        geometry = false; break;
+    case 'supplerendebynavne':
+        geometry = false; break;
+    case 'postnumre':
+        geometry = false; break;
+    case 'sogne':
+        geometry = false; break;
+    case 'stednavne':
+        geometry = createGeojsonPoint(row, row.visueltcenter); break;
+    case 'kommuner':
+        geometry = false; break;
+    default:
+        break;
+    }
+    return geometry;
 }
 
 function parseThemes(theme, row) {
@@ -58,5 +85,6 @@ function parseThemes(theme, row) {
 
 export {
     parseThemes,
+    preliminairyToGeometry,
     singleURL,
 };
