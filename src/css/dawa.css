@@ -1,0 +1,201 @@
+#searchbar{
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    left: 0;
+    right: 0;
+}
+
+#searchbar > .wrapper {
+    width: 380px;
+    position: relative;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 10px;
+    padding-bottom: 0;
+    border-radius: 2px;
+    border: 1px solid lightgrey;
+    box-shadow: 2px 3px 2px rgba(0,0,0,0.1);    
+}
+
+#searchbar > .wrapper > .input-container{
+    height: 30px;
+    padding: 2px;
+    margin-top: 1px;
+}
+
+#searchbar > .wrapper > .input-container > input{
+    position: relative;
+    height: 30px;
+    width: 100%;
+    padding-left: 2px;
+    margin-left: -2px;
+    margin-right: -2px;
+    margin-top: -4px;
+    border-radius: 2px;
+    border: 1px solid hsl(0, 0%, 90%);
+    font-size: 1.1em;
+    text-align: center;
+    background: #edf3f5;
+}
+
+#searchbar > .wrapper > .input-container > .geofinder, 
+#searchbar > .wrapper > .input-container > .delete-text{
+    position: absolute;
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    top: 15px;
+    filter: opacity(0.80);
+    background-position: center;
+    background-size: 80%;
+}
+
+#searchbar > .wrapper > .input-container > .geofinder{ 
+    left: 20px;
+    background-image: url('./icons/uselocation.svg');
+}
+
+#searchbar > .wrapper > .input-container > .delete-text{
+    right: 20px;
+    background-image: url('./icons/cross.svg');
+}
+
+#searchbar > .wrapper > .input-container > .spinner{
+    background-image: none !important;
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    right: 30px;
+}
+
+#searchbar > .wrapper > .input-container > .spinner:after{
+    content: " ";
+    display: block;
+    width: 12px;
+    height: 12px;
+    margin: 0px;
+    border-radius: 50%;
+    border: 4px solid #000;
+    border-color: #7e8488 transparent #ffc4c4 transparent;
+    animation: spinner-ring 1s linear infinite;
+}
+
+@keyframes spinner-ring {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+}
+
+#searchbar > .wrapper > .input-container > .geofinder:hover, 
+#searchbar > .wrapper > .input-container > .delete-text:hover{
+    filter: opacity(1);
+}
+
+#searchbar > .wrapper > .input-container > input[type=text]::-ms-clear {
+    display: none;
+}
+
+#searchbar > .wrapper > .input-container > input:focus{
+    background: rgb(220, 239, 245);
+    outline-style: auto;
+    outline-width: thin;
+    outline-color: #6c98e6;
+}
+
+
+#searchbar > .wrapper > .result-container {
+    margin-top: -3px;
+}
+
+#searchbar > .wrapper > .result-container > .result-list{
+    list-style: none;
+    margin-left: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result:first-child{
+    border-top: 1px solid lightgrey;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result:last-child{
+    border-bottom: 1px solid lightgrey;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result{
+    cursor: pointer;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 40px;
+    margin-left: 0;
+    margin-top: 0;
+    border-top: 1px solid lightgrey;
+    border-left: 1px solid lightgrey;
+    border-right: 1px solid lightgrey;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > div{
+    position: absolute;
+    left: 20px;
+    height: 22px;
+    width: 22px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 80%;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-adgangsadresser,
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-adresser{
+    background-image: url('./icons/home.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-stednavne{
+    background-image: url('./icons/pin.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-kommuner{
+    background-image: url('./icons/city.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-sogne{
+    background-image: url('icons/church.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-supplerendebynavne{
+    background-image: url('icons/village.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-postnumre{
+    background-image: url('icons/mail.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-vejnavne{
+    background-image: url('icons/road.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > span{
+    pointer-events: none;
+    user-select: none;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result:nth-child(odd) {
+    background: #eaeaea;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result:hover:not(.selected),
+#searchbar > .wrapper > .result-container > .result-list > .result.hover{
+    background: #c3e9f5;
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result:active:not(.selected){
+    background: #8cbae6;
+}
