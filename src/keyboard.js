@@ -36,7 +36,7 @@ export default function keyboardSelect(searchbar) {
 
                 // esc
             } else if (e.keyCode === 27) {
-                searchInput.blur();
+                searchInput.value = '';
                 clearChildren(resultList);
                 fireEvent(searchbar, 'results-cleared');
             }

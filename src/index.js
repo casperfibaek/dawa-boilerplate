@@ -90,7 +90,7 @@ export default function dawa(options) {
         const self = e.currentTarget;
         const searchValue = self.value;
 
-        if (searchValue.length >= opt.minLength && resultList.childElementCount !== 0) {
+        if (searchValue.length >= opt.minLength && resultList.childElementCount === 0) {
             startSearch(searchValue, searchbar);
         }
     });
