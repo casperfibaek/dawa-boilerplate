@@ -1,7 +1,8 @@
-import { createElement, clearChildren, fireEvent, get, isVisible, createGeojsonPoint } from './utils';
+import * as DOM from './utils';
 import { setOptions, getOptions } from './options';
 // import leafletIntegration from './leafletIntergration';
 import enableKeyboardSelect from './keyboard';
+import attachButtons from './buttons';
 import searchFieldInit from './search';
 import './css/dawa.css';
 
@@ -9,20 +10,20 @@ import './css/dawa.css';
 export default function dawa(options) {
     setOptions(options || {}); const opt = getOptions();
 
-    const searchbar = createElement('div', { id: 'searchbar' });
-    const wrapper = createElement('div', { class: 'wrapper' });
-    const resultContainer = createElement('div', { class: 'result-container' });
-    const resultList = createElement('ul', { class: 'result-list' });
-    const inputContainer = createElement('div', { class: 'input-container' });
-    const searchInput = createElement('input', {
+    const searchbar = DOM.createElement('div', { id: 'searchbar' });
+    const wrapper = DOM.createElement('div', { class: 'wrapper' });
+    const resultContainer = DOM.createElement('div', { class: 'result-container' });
+    const resultList = DOM.createElement('ul', { class: 'result-list' });
+    const inputContainer = DOM.createElement('div', { class: 'input-container' });
+    const searchInput = DOM.createElement('input', {
         class: 'search-input',
         type: 'text',
         placeholder: 'Search places..',
         onfocus: 'this.placeholder=""',
         onblur: 'this.placeholder="Search places.."',
     });
-    const geofinder = createElement('div', { class: 'geofinder' });
-    const deleteText = createElement('div', { class: 'delete-text' });
+    const geofinder = DOM.createElement('div', { class: 'geofinder' });
+    const deleteText = DOM.createElement('div', { class: 'delete-text' });
 
     resultContainer.appendChild(resultList);
     inputContainer.appendChild(searchInput);
@@ -32,63 +33,9 @@ export default function dawa(options) {
     wrapper.appendChild(resultContainer);
     searchbar.appendChild(wrapper);
 
-    deleteText.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        searchInput.value = '';
-        clearChildren(resultList);
-        fireEvent(searchbar, 'results-cleared');
-    });
-
-    geofinder.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        navigator.geolocation.getCurrentPosition((position) => {
-            const geometry = createGeojsonPoint({}, [
-                position.coords.longitude,
-                position.coords.latitude,
-            ]);
-
-            const prelimEvent = new CustomEvent('geolocation-preliminairy', {
-                detail: {
-                    information: false,
-                    geometry,
-                },
-            });
-
-            searchbar.dispatchEvent(prelimEvent);
-
-            if (opt.reverseGeocode) {
-                const url = `https://dawa.aws.dk/adgangsadresser/reverse?x=${position.coords.latitude}&y=${position.coords.longitude}&struktur=mini`;
-
-                get(url, (requestError, response) => {
-                    if (requestError) { throw new Error(requestError); }
-                    try {
-                        const data = JSON.parse(response);
-
-                        const geometryWithAttributes = createGeojsonPoint(data, [
-                            position.coords.longitude,
-                            position.coords.latitude,
-                        ]);
-
-                        const finalEvent = new CustomEvent('geolocation-final', {
-                            detail: {
-                                geometry: geometryWithAttributes,
-                                information: data,
-                            },
-                        });
-
-                        searchbar.dispatchEvent(finalEvent);
-                    } catch (parseError) {
-                        console.error(parseError);
-                    }
-                });
-            }
-        });
-    });
-
+    attachButtons(searchbar, searchInput, resultList, deleteText, geofinder);
     enableKeyboardSelect(searchbar);
-    searchFieldInit(searchbar, searchInput, resultList, opt);
+    searchFieldInit(searchbar, searchInput, resultList);
 
     let cleared = false;
     if (opt.clickClose) {
@@ -98,9 +45,9 @@ export default function dawa(options) {
             };
 
             if (!wrapper.contains(event.target)) {
-                if (isVisible(wrapper)) {
-                    clearChildren(resultList);
-                    fireEvent(searchbar, 'results-cleared');
+                if (DOM.isVisible(wrapper)) {
+                    DOM.clearChildren(resultList);
+                    DOM.fireEvent(searchbar, 'results-cleared');
                     removeClickListener();
                 }
             }

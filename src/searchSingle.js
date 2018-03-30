@@ -7,9 +7,6 @@ function sendEvent(geometry, information, searchValues, searchbar) {
         detail: { geometry, information },
     });
 
-    event.detail.information.theme = searchValues.theme;
-    event.detail.information.value = searchValues.value;
-
     clearChildren(resultList);
     fireEvent(searchbar, 'results-cleared');
     searchbar.dispatchEvent(event);

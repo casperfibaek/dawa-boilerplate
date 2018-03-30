@@ -1,36 +1,21 @@
-import { createElement, clearChildren, fireEvent, get } from './utils';
+import * as DOM from './utils';
 import { getOptions } from './options';
 import { parseThemes, preliminairyToGeometry } from './parse';
 import searchSingle from './searchSingle';
 
 let options;
-let themes;
-let maxResults;
 let globalIteration = 0;
 let replies = 0;
 let currentRequests = [];
+let rowID = 0;
+let currentRows = [];
 
 function autocompleteURL(theme, searchValue) {
     return `https://dawa.aws.dk/${encodeURIComponent(theme)}/autocomplete?` +
     `q=${encodeURIComponent(searchValue)}` +
     '&noformat' +
-    `&per_side=${maxResults}` +
+    `&per_side=${options.maxResults}` +
     '&fuzzy';
-}
-
-function searchSingleDelegate(searchValues, row, searchbar) {
-    return function internalDelegate() {
-        const event = new CustomEvent('preliminairy', {
-            detail: {
-                information: row,
-                geometry: preliminairyToGeometry(searchValues.theme, row),
-            },
-        });
-        event.detail.theme = searchValues.theme;
-        searchbar.dispatchEvent(event);
-
-        searchSingle(searchValues, row, searchbar);
-    };
 }
 
 function handleData(data, theme, resultList, searchbar) {
@@ -39,50 +24,49 @@ function handleData(data, theme, resultList, searchbar) {
     data.forEach((row) => {
         const fields = parseThemes(theme, row);
 
-        const result = createElement('li', {
+        row.value = fields.value;   // eslint-disable-line
+        row.uid = fields.uid;       // eslint-disable-line
+        row.theme = theme;          // eslint-disable-line
+
+        currentRows.push(row);
+
+        const result = DOM.createElement('li', {
             value: fields.value,
             uid: fields.uid,
+            rowID,
             theme,
             class: 'result',
         });
-        const resultThemeIcon = createElement('div', { class: `theme-${theme}` });
-        const resultText = createElement('span');
+        const resultThemeIcon = DOM.createElement('div', { class: `theme-${theme}` });
+        const resultText = DOM.createElement('span');
         resultText.innerText = fields.value;
 
         result.appendChild(resultThemeIcon);
         result.appendChild(resultText);
 
-        console.log('move eventlistener up, use delegation and stop propagation');
-        result.addEventListener('click', searchSingleDelegate({
-            value: fields.value,
-            uid: fields.uid,
-            theme,
-        }, row, searchbar));
-
+        rowID += 1;
         fragment.appendChild(result);
     });
 
     replies += 1;
     if (replies === 1) {
-        clearChildren(resultList);
-        fireEvent(searchbar, 'results-added');
+        DOM.clearChildren(resultList);
+        DOM.fireEvent(searchbar, 'results-added');
     }
 
     resultList.appendChild(fragment);
 }
 
 function startSearch(searchbar, resultList, searchValue) {
-    themes = options.themes;
-    maxResults = options.maxResults;
     globalIteration += 1;
     replies = 0;
 
     const localHandleData = handleData;
     const thisIteration = globalIteration;
 
-    themes.forEach((theme) => {
+    options.themes.forEach((theme) => {
         const url = autocompleteURL(theme, searchValue);
-        const request = get(url, (requestError, response) => {
+        const request = DOM.get(url, (requestError, response) => {
             if (requestError) { throw new Error(response); }
             if (thisIteration !== globalIteration) { return; }
 
@@ -101,17 +85,24 @@ function startSearch(searchbar, resultList, searchValue) {
 function searchFieldInit(searchbar, searchInput, resultList) {
     options = getOptions();
     const localStartSearch = startSearch;
-    // const localSingleSearch = searchSingleDelegate;
 
     searchbar.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (e.target && e.target.nodeName === 'LI') {
-            const value = e.target.getAttribute('value');
-            const uid = e.target.getAttribute('uid');
-            const theme = e.target.getAttribute('theme');
-            console.log(value, uid, theme, 'clicked');
-            // searchSingleDelegate
+            const row = currentRows[e.target.getAttribute('rowID')];
+            const { value, uid, theme } = row;
+
+            const event = new CustomEvent('preliminairy', {
+                detail: {
+                    information: row,
+                    geometry: preliminairyToGeometry(theme, row),
+                },
+            });
+            event.detail.theme = theme;
+            searchbar.dispatchEvent(event);
+
+            searchSingle({ value, uid, theme }, currentRows[rowID], searchbar);
         }
     });
 
@@ -120,13 +111,16 @@ function searchFieldInit(searchbar, searchInput, resultList) {
             e.preventDefault();
             e.stopPropagation();
 
-            currentRequests.forEach((request) => {
-                if (request.readyState !== 4) {
-                    request.abort();
-                }
-            });
-
-            currentRequests = [];
+            if (currentRequests.length > 0 || currentRows.length > 0) {
+                currentRequests.forEach((request) => {
+                    if (request.readyState !== 4) {
+                        request.abort();
+                    }
+                });
+                currentRequests = [];
+                currentRows = [];
+                rowID = 0;
+            }
 
             const self = e.currentTarget;
             const searchValue = self.value;
@@ -134,8 +128,8 @@ function searchFieldInit(searchbar, searchInput, resultList) {
             if (searchValue.length >= options.minLength) {
                 localStartSearch(searchbar, resultList, searchValue);
             } else {
-                clearChildren(resultList);
-                fireEvent(searchbar, 'results-cleared');
+                DOM.clearChildren(resultList);
+                DOM.fireEvent(searchbar, 'results-cleared');
             }
         });
     });
