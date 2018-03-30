@@ -8,6 +8,7 @@ let themes;
 let maxResults;
 let globalIteration = 0;
 let replies = 0;
+let currentRequests = [];
 
 function autocompleteURL(theme, searchValue) {
     return `https://dawa.aws.dk/${encodeURIComponent(theme)}/autocomplete?` +
@@ -35,8 +36,7 @@ function searchSingleDelegate(searchValues, row, searchbar) {
 function handleData(data, theme, resultList, searchbar) {
     const fragment = document.createDocumentFragment();
 
-    for (let i = 0; i < data.length; i += 1) {
-        const row = data[i];
+    data.forEach((row) => {
         const fields = parseThemes(theme, row);
 
         const result = createElement('li', {
@@ -52,6 +52,7 @@ function handleData(data, theme, resultList, searchbar) {
         result.appendChild(resultThemeIcon);
         result.appendChild(resultText);
 
+        console.log('move eventlistener up, use delegation and stop propagation');
         result.addEventListener('click', searchSingleDelegate({
             value: fields.value,
             uid: fields.uid,
@@ -59,7 +60,7 @@ function handleData(data, theme, resultList, searchbar) {
         }, row, searchbar));
 
         fragment.appendChild(result);
-    }
+    });
 
     replies += 1;
     if (replies === 1) {
@@ -70,15 +71,13 @@ function handleData(data, theme, resultList, searchbar) {
     resultList.appendChild(fragment);
 }
 
-function startSearch(searchValue, searchbar) {
-    options = getOptions();
+function startSearch(searchbar, resultList, searchValue) {
     themes = options.themes;
     maxResults = options.maxResults;
     globalIteration += 1;
     replies = 0;
 
-    const searchInput = searchbar.querySelector('.search-input');
-    const resultList = searchbar.querySelector('.result-list');
+    const localHandleData = handleData;
     const thisIteration = globalIteration;
 
     themes.forEach((theme) => {
@@ -89,16 +88,57 @@ function startSearch(searchValue, searchbar) {
 
             try {
                 const data = JSON.parse(response);
-                handleData(data, theme, resultList, searchbar);
+                localHandleData(data, theme, resultList, searchbar);
             } catch (parseError) {
                 console.error(parseError);
             }
         });
 
-        searchInput.addEventListener('input', () => {
-            request.abort();
-        }, { once: true });
+        currentRequests.push(request);
     });
 }
 
-export default startSearch;
+function searchFieldInit(searchbar, searchInput, resultList) {
+    options = getOptions();
+    const localStartSearch = startSearch;
+    // const localSingleSearch = searchSingleDelegate;
+
+    searchbar.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.target && e.target.nodeName === 'LI') {
+            const value = e.target.getAttribute('value');
+            const uid = e.target.getAttribute('uid');
+            const theme = e.target.getAttribute('theme');
+            console.log(value, uid, theme, 'clicked');
+            // searchSingleDelegate
+        }
+    });
+
+    ['input', 'focus'].forEach((type) => {
+        searchInput.addEventListener(type, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            currentRequests.forEach((request) => {
+                if (request.readyState !== 4) {
+                    request.abort();
+                }
+            });
+
+            currentRequests = [];
+
+            const self = e.currentTarget;
+            const searchValue = self.value;
+
+            if (searchValue.length >= options.minLength) {
+                localStartSearch(searchbar, resultList, searchValue);
+            } else {
+                clearChildren(resultList);
+                fireEvent(searchbar, 'results-cleared');
+            }
+        });
+    });
+}
+
+export default searchFieldInit;

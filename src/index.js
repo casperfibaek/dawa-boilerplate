@@ -1,9 +1,11 @@
-import { createElement, clearChildren, capitalize, fireEvent, get, isVisible, createGeojsonPoint } from './utils';
+import { createElement, clearChildren, fireEvent, get, isVisible, createGeojsonPoint } from './utils';
 import { setOptions, getOptions } from './options';
+// import leafletIntegration from './leafletIntergration';
 import enableKeyboardSelect from './keyboard';
-import startSearch from './search';
+import searchFieldInit from './search';
 import './css/dawa.css';
 
+// export default function dawa(options, map, style) {
 export default function dawa(options) {
     setOptions(options || {}); const opt = getOptions();
 
@@ -30,13 +32,17 @@ export default function dawa(options) {
     wrapper.appendChild(resultContainer);
     searchbar.appendChild(wrapper);
 
-    deleteText.addEventListener('click', () => {
+    deleteText.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         searchInput.value = '';
         clearChildren(resultList);
         fireEvent(searchbar, 'results-cleared');
     });
 
-    geofinder.addEventListener('click', () => {
+    geofinder.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         navigator.geolocation.getCurrentPosition((position) => {
             const geometry = createGeojsonPoint({}, [
                 position.coords.longitude,
@@ -82,29 +88,7 @@ export default function dawa(options) {
     });
 
     enableKeyboardSelect(searchbar);
-
-
-    searchInput.addEventListener('input', (e) => {
-        e.currentTarget.value = capitalize(e.currentTarget.value);
-        const self = e.currentTarget;
-        const searchValue = self.value;
-
-        if (searchValue.length >= opt.minLength) {
-            startSearch(searchValue, searchbar);
-        } else {
-            clearChildren(resultList);
-            fireEvent(searchbar, 'results-cleared');
-        }
-    });
-
-    searchInput.addEventListener('focus', (e) => {
-        const self = e.currentTarget;
-        const searchValue = self.value;
-
-        if (searchValue.length >= opt.minLength && resultList.childElementCount === 0) {
-            startSearch(searchValue, searchbar);
-        }
-    });
+    searchFieldInit(searchbar, searchInput, resultList, opt);
 
     let cleared = false;
     if (opt.clickClose) {
@@ -123,7 +107,9 @@ export default function dawa(options) {
         };
 
         // RESULTS CLEARED
-        searchbar.addEventListener('results-cleared', () => {
+        searchbar.addEventListener('results-cleared', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (!cleared) {
                 document.removeEventListener('mousedown', outsideClickListener);
             }
@@ -131,13 +117,19 @@ export default function dawa(options) {
         });
 
         // RESULTS ADDED
-        searchbar.addEventListener('results-added', () => {
+        searchbar.addEventListener('results-added', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (cleared) {
                 document.addEventListener('mousedown', outsideClickListener);
             }
             cleared = false;
         });
     }
+
+    // if (map) {
+    //     leafletIntegration(searchbar, map, (style) || false);
+    // }
 
     return searchbar;
 }

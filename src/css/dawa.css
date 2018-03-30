@@ -8,6 +8,7 @@
 }
 
 #searchbar > .wrapper {
+    pointer-events: auto;
     width: 380px;
     position: relative;
     margin: 0 auto;
@@ -40,6 +41,12 @@
     font-size: 1.1em;
     text-align: center;
     background: #edf3f5;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+}
+
+#searchbar > .wrapper > .input-container > input::placeholder {
+    user-select: none;
 }
 
 #searchbar > .wrapper > .input-container > .geofinder, 
@@ -141,6 +148,8 @@
     border-top: 1px solid lightgrey;
     border-left: 1px solid lightgrey;
     border-right: 1px solid lightgrey;
+    font-weight: 400;
+    letter-spacing: 0.02em;
 }
 
 #searchbar > .wrapper > .result-container > .result-list > .result > div{
