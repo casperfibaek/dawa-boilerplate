@@ -1,20 +1,10 @@
 import * as DOM from './utils';
 import * as parse from './parse';
-import { getOptions } from './options';
 import searchSingle from './searchSingle';
 
-let options;
-let counterRowID = 0;
-let booleanHasReplies = false;
-let currentRequests = [];
-let currentRows = [];
-let currentMeta = [];
-
-function startSearch(searchbar, resultList, searchValue, addNewResults) {
-    booleanHasReplies = false;
-
-    options.themes.forEach((theme) => {
-        const url = `https://dawa.aws.dk/${encodeURIComponent(theme)}/autocomplete?q=${encodeURIComponent(searchValue)}&noformat&per_side=${options.maxResults}${(options.fuzzy) ? '&fuzzy' : ''}`;
+function startSearch(self, searchValue) {
+    self.options.themes.forEach((theme) => {
+        const url = `https://dawa.aws.dk/${encodeURIComponent(theme)}/autocomplete?q=${encodeURIComponent(searchValue)}&noformat&per_side=${self.options.maxResults}${(self.options.fuzzy) ? '&fuzzy' : ''}`;
 
         const request = DOM.get(url, (requestError, response) => {
             if (requestError) { throw new Error(response); }
@@ -26,17 +16,17 @@ function startSearch(searchbar, resultList, searchValue, addNewResults) {
                 data.forEach((row) => {
                     const fields = parse.themes(theme, row);
 
-                    currentMeta.push({
+                    self.state.currentMeta.push({
                         value: fields.value,
                         uid: fields.uid,
                         theme,
                     });
-                    currentRows.push(row);
+                    self.state.currentRows.push(row);
 
                     const result = DOM.createElement('li', {
                         value: fields.value,
                         uid: fields.uid,
-                        counterRowID,
+                        counterRowID: self.state.counterRowID,
                         theme,
                         class: 'result',
                     });
@@ -47,36 +37,33 @@ function startSearch(searchbar, resultList, searchValue, addNewResults) {
                     result.appendChild(resultThemeIcon);
                     result.appendChild(resultText);
 
-                    counterRowID += 1;
+                    self.state.counterRowID += 1;
                     fragment.appendChild(result);
                 });
 
-                if (!booleanHasReplies) {
-                    addNewResults();
-                    booleanHasReplies = true;
+                if (!self.state.booleanHasReplies) {
+                    self.addNewResults();
+                    self.state.booleanHasReplies = true;
                 }
 
-                resultList.appendChild(fragment);
+                self.elements.resultList.appendChild(fragment);
             } catch (parseError) {
                 console.error(parseError);
             }
         });
 
-        currentRequests.push(request);
+        self.state.currentRequests.push(request);
     });
 }
 
-function searchFieldInit(searchbar, searchInput, resultList, clearResults, addNewResults) {
-    options = getOptions();
-    const localStartSearch = startSearch;
-
-    searchbar.addEventListener('click', (e) => {
+function searchFieldInit(self) {
+    self.elements.searchbar.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (e.target && e.target.nodeName === 'LI') {
-            const id = e.target.getAttribute('counterRowID');
-            const meta = currentMeta[id];
-            const row = currentRows[id];
+            const rowID = e.target.getAttribute('counterRowID');
+            const meta = self.state.currentMeta[rowID];
+            const row = self.state.currentRows[rowID];
 
             const event = new CustomEvent('preliminairy', {
                 detail: {
@@ -86,36 +73,37 @@ function searchFieldInit(searchbar, searchInput, resultList, clearResults, addNe
                 },
             });
             event.detail.theme = meta.theme;
-            searchbar.dispatchEvent(event);
+            self.elements.searchbar.dispatchEvent(event);
 
-            searchSingle(searchbar, meta, currentRows[counterRowID], clearResults);
+            searchSingle(self, meta, self.getRow[rowID]);
         }
     });
 
     ['input', 'focus'].forEach((type) => {
-        searchInput.addEventListener(type, (e) => {
+        self.elements.searchInput.addEventListener(type, (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            if (currentRequests.length || currentRows.length) {
-                currentRequests.forEach((request) => {
+            console.log('focus should not clear, only hide/unhide');
+
+            if (self.state.currentRequests.length || self.state.currentRows.length) {
+                self.state.currentRequests.forEach((request) => {
                     if (request.readyState !== 4) {
                         request.abort();
                     }
                 });
-                currentRequests = [];
-                currentMeta = [];
-                currentRows = [];
-                counterRowID = 0;
+                self.state.currentRequests = [];
+                self.state.currentMeta = [];
+                self.state.currentRows = [];
+                self.state.counterRowID = 0;
             }
 
-            const self = e.currentTarget;
-            const searchValue = self.value;
+            const searchValue = e.currentTarget.value;
 
-            if (searchValue.length >= options.minLength) {
-                localStartSearch(searchbar, resultList, searchValue, addNewResults);
-            } else if (resultList.childElementCount) {
-                clearResults();
+            if (self.inputAboveMinimum()) {
+                startSearch(self, searchValue);
+            } else if (self.elements.resultList.childElementCount) {
+                self.clearResults();
             }
         });
     });

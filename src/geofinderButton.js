@@ -1,8 +1,7 @@
 import * as DOM from './utils';
-import { getOptions } from './options';
 
-export default function geofinderButton(searchbar, searchInput, resultList, geofinder) {
-    geofinder.addEventListener('click', (e) => {
+export default function geofinderButton(self) {
+    self.elements.geofinder.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         navigator.geolocation.getCurrentPosition((position) => {
@@ -18,9 +17,9 @@ export default function geofinderButton(searchbar, searchInput, resultList, geof
                 },
             });
 
-            searchbar.dispatchEvent(prelimEvent);
+            self.elements.searchbar.dispatchEvent(prelimEvent);
 
-            if (!getOptions().reverseGeocode) { return; }
+            if (!self.options.reverseGeocode) { return; }
             const url = `https://dawa.aws.dk/adgangsadresser/reverse?x=${position.coords.latitude}&y=${position.coords.longitude}&struktur=mini`;
 
             DOM.get(url, (requestError, response) => {
@@ -40,7 +39,7 @@ export default function geofinderButton(searchbar, searchInput, resultList, geof
                         },
                     });
 
-                    searchbar.dispatchEvent(finalEvent);
+                    self.elements.searchbar.dispatchEvent(finalEvent);
                 } catch (parseError) {
                     console.error(parseError);
                 }

@@ -1,32 +1,33 @@
 import { get } from './utils';
 import { singleSearchUrl } from './parse';
 
-function sendEvent(searchbar, meta, geometry, information, clearResults) {
-    const event = new CustomEvent('final', {
-        detail: { geometry, information },
-    });
-
-    clearResults();
-    searchbar.dispatchEvent(event);
-}
-
-export default function searchSingle(searchbar, meta, row, clearResults) {
+export default function searchSingle(self, meta, row) {
+    const information = row;
+    let geometry = false;
     const url = singleSearchUrl(meta);
-    if (!url) { sendEvent(searchbar, meta, false, row, clearResults); return; }
+    if (!url) {
+        const event = new CustomEvent('final', {
+            detail: { geometry, information },
+        });
 
-    const spinner = searchbar.querySelector('.delete-text');
-    spinner.classList.add('spinner');
+        self.clearResults();
+        self.elements.searchbar.dispatchEvent(event);
+    } else {
+        self.elements.deleteText.classList.add('spinner');
+        get(url, (requestError, response) => {
+            self.elements.deleteText.classList.remove('spinner');
+            if (requestError) { throw new Error(requestError); }
+            try {
+                geometry = JSON.parse(response);
+                const event = new CustomEvent('final', {
+                    detail: { geometry, information },
+                });
 
-    console.log('remove this call to the DOM');
-
-    get(url, (requestError, response) => {
-        spinner.classList.remove('spinner');
-        if (requestError) { throw new Error(requestError); }
-        try {
-            const geometry = JSON.parse(response);
-            sendEvent(searchbar, meta, geometry, row, clearResults);
-        } catch (parseError) {
-            console.error(parseError);
-        }
-    });
+                self.clearResults();
+                self.elements.searchbar.dispatchEvent(event);
+            } catch (parseError) {
+                console.error(parseError);
+            }
+        });
+    }
 }
