@@ -1,7 +1,7 @@
 import dawa from '../src/index';
 
 window.onload = function init() {
-    const searchbar = dawa({
+    window.dawa = dawa({
         minLength: 3,
         maxResults: 3,
         themes: [
@@ -15,21 +15,21 @@ window.onload = function init() {
             'sogne',
         ],
     });
-    document.body.appendChild(searchbar);
+    document.body.appendChild(window.dawa);
 
-    searchbar.addEventListener('final', (e) => {
+    window.dawa.addEventListener('final', (e) => {
         console.log(e);
     });
 
-    searchbar.addEventListener('preliminairy', (e) => {
+    window.dawa.addEventListener('preliminairy', (e) => {
         console.log(e);
     });
 
-    searchbar.addEventListener('geolocation-preliminairy', (e) => {
+    window.dawa.addEventListener('geolocation-preliminairy', (e) => {
         console.log(e);
     });
 
-    searchbar.addEventListener('geolocation-final', (e) => {
+    window.dawa.addEventListener('geolocation-final', (e) => {
         console.log(e);
     });
 };

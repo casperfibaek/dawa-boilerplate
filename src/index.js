@@ -7,7 +7,7 @@ import searchFieldInit from './search';
 import './css/dawa.css';
 
 // export default function dawa(options, map, style) {
-export default function dawa(options) {
+export default (function dawa(parent, options) {
     setOptions(options || {}); const opt = getOptions();
 
     /*
@@ -58,6 +58,7 @@ export default function dawa(options) {
         DOM.clearChildren(resultList);
         DOM.fireEvent(searchbar, 'results-cleared');
     }
+
     function addNewResults() {
         console.log('add new results');
         DOM.clearChildren(resultList);
@@ -65,6 +66,7 @@ export default function dawa(options) {
     }
 
     resultList.addEventListener('mouseover', (e) => {
+        console.log('add a state handler and a constructor to handle these listeners');
         e.preventDefault();
         e.stopPropagation();
         if (e.target && e.target.nodeName === 'LI') {
@@ -124,4 +126,4 @@ export default function dawa(options) {
     // }
 
     return searchbar;
-}
+});
