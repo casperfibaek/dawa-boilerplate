@@ -1,33 +1,30 @@
-import { clearChildren, fireEvent, get } from './utils';
-import { singleURL } from './parse';
+import { get } from './utils';
+import { singleSearchUrl } from './parse';
 
-function sendEvent(geometry, information, searchValues, searchbar) {
-    const resultList = searchbar.querySelector('.result-list');
+function sendEvent(searchbar, meta, geometry, information, clearResults) {
     const event = new CustomEvent('final', {
         detail: { geometry, information },
     });
 
-    clearChildren(resultList);
-    fireEvent(searchbar, 'results-cleared');
+    clearResults();
     searchbar.dispatchEvent(event);
 }
 
-export default function searchSingle(searchValues, row, searchbar) {
-    const url = singleURL(searchValues);
-    if (!url) {
-        sendEvent(false, row, searchValues, searchbar);
-        return;
-    }
+export default function searchSingle(searchbar, meta, row, clearResults) {
+    const url = singleSearchUrl(meta);
+    if (!url) { sendEvent(searchbar, meta, false, row, clearResults); return; }
 
     const spinner = searchbar.querySelector('.delete-text');
     spinner.classList.add('spinner');
+
+    console.log('remove this call to the DOM');
 
     get(url, (requestError, response) => {
         spinner.classList.remove('spinner');
         if (requestError) { throw new Error(requestError); }
         try {
-            const data = JSON.parse(response);
-            sendEvent(data, row, searchValues, searchbar);
+            const geometry = JSON.parse(response);
+            sendEvent(searchbar, meta, geometry, row, clearResults);
         } catch (parseError) {
             console.error(parseError);
         }

@@ -6,6 +6,7 @@ const defaults = {
     multiLine: false,
     clickClose: true,
     reverseGeocode: true,
+    fuzzy: true,
     themes: [
         // 'adresser',
         'stednavne',

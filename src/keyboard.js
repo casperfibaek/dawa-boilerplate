@@ -1,51 +1,32 @@
-import { clearChildren, clearClass, fireEvent } from './utils';
-
-export default function keyboardSelect(searchbar) {
-    const resultList = searchbar.querySelector('.result-list');
-    const searchInput = searchbar.querySelector('.search-input');
-    let currentChild = false;
+export default function keyboardSelect(searchbar, searchInput, resultList, clearResults) {
+    let currentChild = 'off';
 
     searchInput.addEventListener('keydown', (e) => {
-        if (resultList.childElementCount > 0) {
-            // up-arrow
-            if (e.keyCode === 38) {
-                if (currentChild === 0 || currentChild === false) {
-                    currentChild = resultList.childElementCount - 1;
-                } else {
-                    currentChild -= 1;
-                }
-                clearClass(resultList, 'hover');
-                resultList.childNodes[currentChild].classList.add('hover');
+        e.stopPropagation();
+        if (!resultList.childElementCount) { currentChild = 'off'; return; }
 
-                // down-arrow
-            } else if (e.keyCode === 40) {
-                if (currentChild === false || currentChild >= resultList.childElementCount - 1) {
-                    currentChild = 0;
-                } else {
-                    currentChild += 1;
-                }
-                clearClass(resultList, 'hover');
-                resultList.childNodes[currentChild].classList.add('hover');
-
-                // enter
-            } else if (e.keyCode === 13) {
-                if (resultList.childElementCount === 0) { return; }
-                if (resultList.querySelector('.hover')) {
-                    resultList.childNodes[currentChild].click();
-                }
-
-                // esc
-            } else if (e.keyCode === 27) {
-                searchInput.value = '';
-                clearChildren(resultList);
-                fireEvent(searchbar, 'results-cleared');
+        if (e.keyCode === 38) { // up-arrow
+            if (currentChild === 0 || currentChild === 'off') {
+                currentChild = resultList.childElementCount - 1;
+            } else {
+                currentChild -= 1;
             }
-        } else {
-            currentChild = false;
+            resultList.querySelectorAll('.hover').forEach(li => li.classList.remove('hover'));
+            resultList.childNodes[currentChild].classList.add('hover');
+        } else if (e.keyCode === 40) { // down-arrow
+            if (currentChild === 'off' || currentChild >= resultList.childElementCount - 1) {
+                currentChild = 0;
+            } else {
+                currentChild += 1;
+            }
+            resultList.querySelectorAll('.hover').forEach(li => li.classList.remove('hover'));
+            resultList.childNodes[currentChild].classList.add('hover');
+        } else if (e.keyCode === 13) { // enter
+            if (resultList.querySelector('.hover')) {
+                resultList.childNodes[currentChild].click();
+            }
+        } else if (e.keyCode === 27) { // esc
+            clearResults();
         }
-    });
-
-    resultList.addEventListener('mouseover', () => {
-        clearClass(resultList, 'hover');
     });
 }

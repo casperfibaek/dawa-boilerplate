@@ -21,17 +21,18 @@
     "css-loader": "^0.28.11",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-import": "^2.10.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
     "html-webpack-plugin": "^3.1.0",
     "style-loader": "^0.20.3",
     "uglifyjs-webpack-plugin": "^1.2.4",
-    "webpack": "^4.3.0",
+    "webpack": "^4.4.1",
     "webpack-cli": "^2.0.13",
     "webpack-dev-server": "^3.1.1"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.42"
+    "@babel/runtime": "^7.0.0-beta.42",
+    "webpack-closure-compiler": "^2.1.6"
   }
 }

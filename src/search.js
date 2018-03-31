@@ -1,78 +1,62 @@
 import * as DOM from './utils';
+import * as parse from './parse';
 import { getOptions } from './options';
-import { parseThemes, preliminairyToGeometry } from './parse';
 import searchSingle from './searchSingle';
 
 let options;
-let globalIteration = 0;
-let replies = 0;
+let counterRowID = 0;
+let booleanHasReplies = false;
 let currentRequests = [];
-let rowID = 0;
 let currentRows = [];
+let currentMeta = [];
 
-function autocompleteURL(theme, searchValue) {
-    return `https://dawa.aws.dk/${encodeURIComponent(theme)}/autocomplete?` +
-    `q=${encodeURIComponent(searchValue)}` +
-    '&noformat' +
-    `&per_side=${options.maxResults}` +
-    '&fuzzy';
-}
-
-function handleData(data, theme, resultList, searchbar) {
-    const fragment = document.createDocumentFragment();
-
-    data.forEach((row) => {
-        const fields = parseThemes(theme, row);
-
-        row.value = fields.value;   // eslint-disable-line
-        row.uid = fields.uid;       // eslint-disable-line
-        row.theme = theme;          // eslint-disable-line
-
-        currentRows.push(row);
-
-        const result = DOM.createElement('li', {
-            value: fields.value,
-            uid: fields.uid,
-            rowID,
-            theme,
-            class: 'result',
-        });
-        const resultThemeIcon = DOM.createElement('div', { class: `theme-${theme}` });
-        const resultText = DOM.createElement('span');
-        resultText.innerText = fields.value;
-
-        result.appendChild(resultThemeIcon);
-        result.appendChild(resultText);
-
-        rowID += 1;
-        fragment.appendChild(result);
-    });
-
-    replies += 1;
-    if (replies === 1) {
-        DOM.clearChildren(resultList);
-        DOM.fireEvent(searchbar, 'results-added');
-    }
-
-    resultList.appendChild(fragment);
-}
-
-function startSearch(searchbar, resultList, searchValue) {
-    globalIteration += 1;
-    replies = 0;
-
-    const localHandleData = handleData;
-    const thisIteration = globalIteration;
+function startSearch(searchbar, resultList, searchValue, addNewResults) {
+    booleanHasReplies = false;
 
     options.themes.forEach((theme) => {
-        const url = autocompleteURL(theme, searchValue);
+        const url = `https://dawa.aws.dk/${encodeURIComponent(theme)}/autocomplete?q=${encodeURIComponent(searchValue)}&noformat&per_side=${options.maxResults}${(options.fuzzy) ? '&fuzzy' : ''}`;
+
         const request = DOM.get(url, (requestError, response) => {
             if (requestError) { throw new Error(response); }
-            if (thisIteration !== globalIteration) { return; }
 
             try {
                 const data = JSON.parse(response);
-                localHandleData(data, theme, resultList, searchbar);
+                const fragment = document.createDocumentFragment();
+
+                data.forEach((row) => {
+                    const fields = parse.themes(theme, row);
+
+                    currentMeta.push({
+                        value: fields.value,
+                        uid: fields.uid,
+                        theme,
+                    });
+                    currentRows.push(row);
+
+                    const result = DOM.createElement('li', {
+                        value: fields.value,
+                        uid: fields.uid,
+                        counterRowID,
+                        theme,
+                        class: 'result',
+                    });
+                    const resultThemeIcon = DOM.createElement('div', { class: `theme-${theme}` });
+                    const resultText = DOM.createElement('span');
+                    resultText.innerText = fields.value;
+
+                    result.appendChild(resultThemeIcon);
+                    result.appendChild(resultText);
+
+                    counterRowID += 1;
+                    fragment.appendChild(result);
+                });
+
+                if (!booleanHasReplies) {
+                    addNewResults();
+                    booleanHasReplies = true;
+                }
+
+                resultList.appendChild(fragment);
             } catch (parseError) {
                 console.error(parseError);
             }
@@ -82,7 +66,7 @@ function startSearch(searchbar, resultList, searchValue) {
     });
 }
 
-function searchFieldInit(searchbar, searchInput, resultList) {
+function searchFieldInit(searchbar, searchInput, resultList, clearResults, addNewResults) {
     options = getOptions();
     const localStartSearch = startSearch;
 
@@ -90,19 +74,21 @@ function searchFieldInit(searchbar, searchInput, resultList) {
         e.preventDefault();
         e.stopPropagation();
         if (e.target && e.target.nodeName === 'LI') {
-            const row = currentRows[e.target.getAttribute('rowID')];
-            const { value, uid, theme } = row;
+            const id = e.target.getAttribute('counterRowID');
+            const meta = currentMeta[id];
+            const row = currentRows[id];
 
             const event = new CustomEvent('preliminairy', {
                 detail: {
+                    meta,
                     information: row,
-                    geometry: preliminairyToGeometry(theme, row),
+                    geometry: parse.geometry(meta.theme, row),
                 },
             });
-            event.detail.theme = theme;
+            event.detail.theme = meta.theme;
             searchbar.dispatchEvent(event);
 
-            searchSingle({ value, uid, theme }, currentRows[rowID], searchbar);
+            searchSingle(searchbar, meta, currentRows[counterRowID], clearResults);
         }
     });
 
@@ -111,25 +97,25 @@ function searchFieldInit(searchbar, searchInput, resultList) {
             e.preventDefault();
             e.stopPropagation();
 
-            if (currentRequests.length > 0 || currentRows.length > 0) {
+            if (currentRequests.length || currentRows.length) {
                 currentRequests.forEach((request) => {
                     if (request.readyState !== 4) {
                         request.abort();
                     }
                 });
                 currentRequests = [];
+                currentMeta = [];
                 currentRows = [];
-                rowID = 0;
+                counterRowID = 0;
             }
 
             const self = e.currentTarget;
             const searchValue = self.value;
 
             if (searchValue.length >= options.minLength) {
-                localStartSearch(searchbar, resultList, searchValue);
-            } else {
-                DOM.clearChildren(resultList);
-                DOM.fireEvent(searchbar, 'results-cleared');
+                localStartSearch(searchbar, resultList, searchValue, addNewResults);
+            } else if (resultList.childElementCount) {
+                clearResults();
             }
         });
     });

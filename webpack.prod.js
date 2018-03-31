@@ -5,6 +5,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');       // eslint-disa
 const CompressionPlugin = require("compression-webpack-plugin");  // eslint-disable-line
 const ExtractTextPlugin = require("extract-text-webpack-plugin"); // eslint-disable-line
 const HtmlWebpackPlugin = require('html-webpack-plugin');         // eslint-disable-line
+// const ClosureCompilerPlugin = require('webpack-closure-compiler'); // eslint-disable-line
 
 module.exports = {
     entry: [
@@ -54,11 +55,17 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
         }),
-        new webpack.optimize.AggressiveMergingPlugin(),
+        // new webpack.optimize.AggressiveMergingPlugin(),
+        new webpack.optimize.AggressiveSplittingPlugin(),
         new ExtractTextPlugin('dawa.css'),
         new UglifyJSPlugin({
             sourceMap: true,
             exclude: [/\.min\.js$/gi],
+            parallel: true,
+            cache: true,
+            uglifyOptions: {
+                toplevel: true,
+            },
         }),
         new CompressionPlugin({
             test: /\.(js|css)$/,

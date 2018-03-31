@@ -2,13 +2,32 @@ import * as DOM from './utils';
 import { setOptions, getOptions } from './options';
 // import leafletIntegration from './leafletIntergration';
 import enableKeyboardSelect from './keyboard';
-import attachButtons from './buttons';
+import geofinderButton from './geofinderButton';
 import searchFieldInit from './search';
 import './css/dawa.css';
 
 // export default function dawa(options, map, style) {
 export default function dawa(options) {
     setOptions(options || {}); const opt = getOptions();
+
+    /*
+        <div id="searchbar">
+            <div class="wrapper">
+                <div class="input-container">
+                    <div class="geofinder"></div>
+                    <input class="search-input"></input>
+                    <div class="delete-text"></div>
+                </div>
+                <div class="result-container">
+                    <ul class="result-list">
+                        <li class="result">...</li>
+                        <li class="result">...</li>
+                                ...
+                    </ul>
+                </div>
+            </div>
+        </div>
+    */
 
     const searchbar = DOM.createElement('div', { id: 'searchbar' });
     const wrapper = DOM.createElement('div', { class: 'wrapper' });
@@ -33,9 +52,35 @@ export default function dawa(options) {
     wrapper.appendChild(resultContainer);
     searchbar.appendChild(wrapper);
 
-    attachButtons(searchbar, searchInput, resultList, deleteText, geofinder);
-    enableKeyboardSelect(searchbar);
-    searchFieldInit(searchbar, searchInput, resultList);
+    function clearResults() {
+        console.log('clear old results');
+        if (searchInput.value.length >= opt.minLength) { searchInput.value = ''; }
+        DOM.clearChildren(resultList);
+        DOM.fireEvent(searchbar, 'results-cleared');
+    }
+    function addNewResults() {
+        console.log('add new results');
+        DOM.clearChildren(resultList);
+        DOM.fireEvent(searchbar, 'results-added');
+    }
+
+    resultList.addEventListener('mouseover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.target && e.target.nodeName === 'LI') {
+            resultList.querySelectorAll('.hover').forEach(li => li.classList.remove('hover'));
+        }
+    });
+
+    deleteText.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        clearResults();
+    });
+
+    geofinderButton(searchbar, searchInput, resultList, deleteText, geofinder);
+    enableKeyboardSelect(searchbar, searchInput, resultList, clearResults);
+    searchFieldInit(searchbar, searchInput, resultList, clearResults, addNewResults);
 
     let cleared = false;
     if (opt.clickClose) {
