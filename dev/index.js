@@ -1,35 +1,44 @@
 import Dawa from '../src/index';
 
 window.onload = function init() {
-    window.dawa = new Dawa({
+    window.dawa = new Dawa(document.body, {
         minLength: 3,
         maxResults: 3,
+        clickClose: true,
+        reverseGeocode: true,
+        fuzzy: true,
         themes: [
             // 'adresser',
-            'stednavne',
             'adgangsadresser',
             // 'vejnavne',
+            'vejstykker',
             // 'supplerendebynavne',
             'postnumre',
-            'kommuner',
             'sogne',
+            'kommuner',
+            'regioner',
+            // 'storkredse',
+            // 'retskredse',
+            // 'opstillingskredse',
+            // 'politikredse',
+            // 'ejerlav',
+            'stednavne',
         ],
-    })
-        .addTo(document.body);
+    });
 
-    // window.dawa.addEventListener('final', (e) => {
-    //     console.log(e);
-    // });
+    window.dawa.on('search-preliminairy', (e) => {
+        console.log(e);
+    });
 
-    // window.dawa.addEventListener('preliminairy', (e) => {
-    //     console.log(e);
-    // });
+    window.dawa.on('search-final', (e) => {
+        console.log(e);
+    });
 
-    // window.dawa.addEventListener('geolocation-preliminairy', (e) => {
-    //     console.log(e);
-    // });
+    window.dawa.on('geolocation-preliminairy', (e) => {
+        console.log(e);
+    });
 
-    // window.dawa.addEventListener('geolocation-final', (e) => {
-    //     console.log(e);
-    // });
+    window.dawa.on('geolocation-final', (e) => {
+        console.log(e);
+    });
 };

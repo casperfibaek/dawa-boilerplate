@@ -7,6 +7,7 @@ module.exports = {
     },
     "rules": {
         "indent": ["error", 4],
+        "max-len": "off",
         "no-console": 'off',
         "prefer-destructuring": "off",
         "no-underscore-dangle": "off",

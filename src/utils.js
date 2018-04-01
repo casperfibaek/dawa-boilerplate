@@ -28,7 +28,6 @@ function clearChildren(element) {
     return element;
 }
 
-
 /**
  * Gets the attributes of an element as an  object.
  * @param {Element} element The element whose attributes to get.
@@ -103,19 +102,11 @@ function get(url, callback, context) {
     };
 
     req.onerror = function onerror(err) { callback(true, err, context); };
+    req.onabort = function onabort(msg) { callback(true, msg, context); };
     req.open('GET', url, true);
     req.send();
 
     return req;
-}
-
-function isVisible(element) {
-    return !!element && !!(element.offsetWidth ||
-    element.offsetHeight || element.getClientRects().length);
-}
-
-function fireEvent(element, event) {
-    element.dispatchEvent(new Event(event));
 }
 
 function createGeojsonPoint(properties, coordinates) {
@@ -134,9 +125,7 @@ export {
     clearChildren,
     capitalize,
     clearClass,
-    fireEvent,
     getAttributes,
     get,
-    isVisible,
     createGeojsonPoint,
 };

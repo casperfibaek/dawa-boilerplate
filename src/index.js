@@ -1,43 +1,74 @@
 import * as DOM from './utils';
-import { setOptions, getOptions } from './options';
-// // import leafletIntegration from './leafletIntergration';
-import enableKeyboardSelect from './keyboard';
-import geofinderButton from './geofinderButton';
-import searchFieldInit from './search';
+import init from './init';
 import './css/dawa.css';
 
-/*
-<div id="searchbar">
-    <div class="wrapper">
-        <div class="input-container">
-            <div class="geofinder"></div>
-            <input class="search-input"></input>
-            <div class="delete-text"></div>
-        </div>
-        <div class="result-container">
-            <ul class="result-list">
-                <li class="result">...</li>
-                <li class="result">...</li>
-                        ...
-            </ul>
-        </div>
-    </div>
-</div>
-*/
+function Dawa(element, options) {
+    const self = this;
+    this.options = {
+        minLength: 3,
+        maxResults: 3,
+        clickClose: true,
+        reverseGeocode: true,
+        fuzzy: true,
+        themes: [
+            'adresser',
+            'adgangsadresser',
+            'vejnavne',
+            'vejstykker',
+            'supplerendebynavne',
+            'postnumre',
+            'sogne',
+            'kommuner',
+            'regioner',
+            'storkredse',
+            'retskredse',
+            'opstillingskredse',
+            'politikredse',
+            'ejerlav',
+            'stednavne',
+        ],
+    };
 
-function Dawa(options) {
-    setOptions(options || {});
-    this.options = getOptions();
+    Object.keys(options).forEach((key) => {
+        if (self.options[key]) { self.options[key] = options[key]; }
+    });
+
     this.state = {
-        counterRowID: 0,
-        booleanHasReplies: false,
-        currentRequests: [],
-        currentRows: [],
-        currentMeta: [],
+        hasReplies: false,
+        resultsHidden: false,
+        requests: [],
+        rows: [],
+        meta: [],
     };
-    this.getRow = function getRow(num) {
-        return this.state.currentRows[num];
+
+    this.events = {
+        'search-preliminairy': [],
+        'search-final': [],
+        'geolocation-preliminairy': [],
+        'geolocation-final': [],
     };
+
+    this.getters = {
+        singleRow(num) { return self.state.rows[num]; },
+        singleMeta(num) { return self.state.meta[num]; },
+        hasReplies() { return self.state.hasReplies; },
+        resultsHidden() { return self.state.resultsHidden; },
+        requests() { return self.state.requests; },
+        rows() { return self.state.rows; },
+        meta() { return self.state.meta; },
+    };
+
+    this.setters = {
+        hasReplies(bool) { self.state.hasReplies = bool; },
+        toggleResults(bool) { self.state.resultsHidden = bool; },
+        addRequest(obj) { self.state.requests.push(obj); },
+        addRow(obj) { self.state.rows.push(obj); },
+        addMeta(obj) { self.state.meta.push(obj); },
+        clearRequests() { self.state.requests = []; },
+        clearRows() { self.state.rows = []; },
+        clearMeta() { self.state.meta = []; },
+    };
+
     this.elements = {
         searchbar: DOM.createElement('div', { id: 'searchbar' }),
         wrapper: DOM.createElement('div', { class: 'wrapper' }),
@@ -63,52 +94,110 @@ function Dawa(options) {
     this.elements.wrapper.appendChild(this.elements.resultContainer);
     this.elements.searchbar.appendChild(this.elements.wrapper);
 
-    this.inputAboveMinimum = function inputAboveMinimum() {
-        return this.elements.searchInput.value.length >= this.options.minLength;
-    };
-
-    this.clearResults = function clearResults() {
-        if (this.inputAboveMinimum()) { this.elements.searchInput.value = ''; }
-        DOM.clearChildren(this.elements.resultList);
-        this.state.booleanHasReplies = false;
-        console.log('cleared');
-    };
-
-    this.addNewResults = function addNewResults() {
-        if (!this.inputAboveMinimum()) { this.elements.searchInput.value = ''; }
-        DOM.clearChildren(this.elements.resultList);
-        this.state.booleanHasReplies = false;
-        console.log('added');
-    };
-
-    this.elements.deleteText.addEventListener('click', (e) => {
+    function _hoverClear(e) {
         e.preventDefault();
         e.stopPropagation();
-        this.clearResults();
-    });
-
-    this.elements.resultList.addEventListener('mouseover', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('this should only be enabled when open');
         if (e.target && e.target.nodeName === 'LI') {
-            this.elements.resultList.querySelectorAll('.hover').forEach((li) => {
+            self.elements.resultList.querySelectorAll('.hover').forEach((li) => {
                 li.classList.remove('hover');
             });
         }
-    });
+    }
 
-    geofinderButton(this);
-    enableKeyboardSelect(this);
-    searchFieldInit(this);
+    function _hideResultsOnClick(e) {
+        const isClickInside = self.elements.wrapper.contains(e.target);
+        if (!isClickInside) {
+            self.methods.hideResults();
+            self.setters.toggleResults(true);
+        }
+    }
 
-    this.addTo = function addTo(element) {
-        element.appendChild(this.elements.searchbar);
+    this.methods = {
+        inputAboveMinimum() {
+            return self.elements.searchInput.value.length >= self.options.minLength;
+        },
+        isLoading(bool) {
+            if (bool) {
+                self.elements.deleteText.classList.add('spinner');
+            } else {
+                self.elements.deleteText.classList.remove('spinner');
+            }
+        },
+        clearResults() {
+            if (self.methods.inputAboveMinimum()) { self.elements.searchInput.value = ''; }
+            self.elements.resultList.removeEventListener('mouseover', _hoverClear);
+            DOM.clearChildren(self.elements.resultList);
+            self.setters.hasReplies(false);
+            if (self.options.clickClose) {
+                document.body.removeEventListener('click', _hideResultsOnClick);
+            }
+        },
+        addNewResults() {
+            if (!self.methods.inputAboveMinimum()) { self.elements.searchInput.value = ''; }
+            self.elements.resultList.addEventListener('mouseover', _hoverClear);
+            DOM.clearChildren(self.elements.resultList);
+            self.setters.hasReplies(false);
+            if (self.options.clickClose) {
+                document.body.addEventListener('click', _hideResultsOnClick);
+            }
+        },
+        showResults() {
+            self.elements.resultList.style.display = 'block';
+            self.setters.toggleResults(true);
+        },
+        hideResults() {
+            self.elements.resultList.style.display = 'none';
+            self.setters.toggleResults(false);
+        },
     };
 
-    // if (map) {
-    //     leafletIntegration(searchbar, map, (style) || false);
-    // }
+    this.on = function on(type, fn) {
+        if (!this.events[type] || !fn) {
+            console.warn('Event type not available on object or no function specified');
+        } else {
+            let alreadyExists = false;
+            for (let i = 0; i < this.events[type].length; i += 1) {
+                const event = this.events[type][i];
+                if (fn === event) {
+                    alreadyExists = true;
+                    break;
+                }
+            }
+
+            if (alreadyExists) {
+                console.warn('Function already added to eventlistener');
+            } else {
+                this.events[type].push(fn);
+            }
+        }
+
+        return this;
+    };
+
+    this.off = function on(type, fn) {
+        if (!fn && !type) {
+            console.warn('No function or type specified');
+        } else if (!fn && this.events[type]) {
+            this.events[type] = [];
+        } else if (fn && this.events[type]) {
+            let found = false;
+            for (let i = 0; i < this.events[type].length; i += 1) {
+                if (fn === this.events[type][i]) {
+                    this.events[type].splice(i, 1);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                console.warn('The function was not found');
+            }
+        }
+        return this;
+    };
+
+    init(this);
+    element.appendChild(this.elements.searchbar);
 }
 
 export default Dawa;

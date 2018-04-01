@@ -10,6 +10,7 @@
 #searchbar > .wrapper {
     pointer-events: auto;
     width: 380px;
+    min-height: 42px;
     position: relative;
     margin: 0 auto;
     left: 0;
@@ -187,6 +188,19 @@
     background-image: url('icons/mail.svg');
 }
 
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-ejerlav{
+    background-image: url('icons/border.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-politikredse{
+    background-image: url('icons/police.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-retskredse{
+    background-image: url('icons/law.svg');
+}
+
+#searchbar > .wrapper > .result-container > .result-list > .result > .theme-vejstykker,
 #searchbar > .wrapper > .result-container > .result-list > .result > .theme-vejnavne{
     background-image: url('icons/road.svg');
 }

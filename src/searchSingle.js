@@ -1,30 +1,33 @@
 import { get } from './utils';
 import { singleSearchUrl } from './parse';
 
-export default function searchSingle(self, meta, row) {
-    const information = row;
-    let geometry = false;
+export default function searchSingle(self, meta, information) {
+    if (!self.events['search-final'].length) { return; }
+    console.log(meta);
+
     const url = singleSearchUrl(meta);
     if (!url) {
-        const event = new CustomEvent('final', {
-            detail: { geometry, information },
+        self.events['search-final'].forEach((fn) => {
+            fn({ meta, information, geometry: false });
         });
 
-        self.clearResults();
-        self.elements.searchbar.dispatchEvent(event);
+        self.methods.clearResults();
     } else {
-        self.elements.deleteText.classList.add('spinner');
+        self.methods.isLoading(true);
         get(url, (requestError, response) => {
-            self.elements.deleteText.classList.remove('spinner');
-            if (requestError) { throw new Error(requestError); }
+            self.methods.isLoading(false);
+            if (requestError) {
+                console.warn(response);
+                return;
+            }
             try {
-                geometry = JSON.parse(response);
-                const event = new CustomEvent('final', {
-                    detail: { geometry, information },
+                const geometry = JSON.parse(response);
+
+                self.events['search-final'].forEach((fn) => {
+                    fn({ meta, information, geometry });
                 });
 
-                self.clearResults();
-                self.elements.searchbar.dispatchEvent(event);
+                self.methods.clearResults();
             } catch (parseError) {
                 console.error(parseError);
             }
