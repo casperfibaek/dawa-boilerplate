@@ -2,7 +2,7 @@ import * as DOM from './utils';
 import extendSearchMultiple from './extendSearchMultiple';
 import extendSearchSingle from './extendSearchSingle';
 import addLeaflet from './extendLeaflet';
-import extendInit from './extendInit';
+import init from './init';
 import './css/dawa.css';
 
 function Dawa(parent, options, map, mapStyle) {
@@ -208,7 +208,7 @@ function Dawa(parent, options, map, mapStyle) {
     this._methods.searchMultiple = extendSearchMultiple;
     this._methods.searchSingle = extendSearchSingle;
     this._methods.addLeaflet = addLeaflet;
-    this._methods.init = extendInit;
+    this._methods.init = init;
 
     this._methods.init.call(this);
     document.querySelector(parent).appendChild(this._elements.searchbar);
