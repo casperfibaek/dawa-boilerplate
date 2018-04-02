@@ -1,5 +1,7 @@
 import * as DOM from './utils';
-import init from './init';
+import extendSearchMultiple from './extendSearchMultiple';
+import extendSearchSingle from './extendSearchSingle';
+import extendInit from './extendInit';
 import './css/dawa.css';
 
 function Dawa(element, options) {
@@ -94,64 +96,62 @@ function Dawa(element, options) {
     this.elements.wrapper.appendChild(this.elements.resultContainer);
     this.elements.searchbar.appendChild(this.elements.wrapper);
 
-    function _hoverClear(e) {
+    const _hoverClear = (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (e.target && e.target.nodeName === 'LI') {
-            self.elements.resultList.querySelectorAll('.hover').forEach((li) => {
+            this.elements.resultList.querySelectorAll('.hover').forEach((li) => {
                 li.classList.remove('hover');
             });
         }
-    }
+    };
 
-    function _hideResultsOnClick(e) {
-        const isClickInside = self.elements.wrapper.contains(e.target);
+    const _hideResultsOnClick = (e) => {
+        const isClickInside = this.elements.wrapper.contains(e.target);
         if (!isClickInside) {
-            self.methods.hideResults();
-            self.setters.toggleResults(true);
+            this.methods.hideResults();
+            this.setters.toggleResults(true);
         }
-    }
+    };
 
     this.methods = {
-        inputAboveMinimum() {
-            return self.elements.searchInput.value.length >= self.options.minLength;
-        },
-        isLoading(bool) {
+        isLoading: (bool) => {
             if (bool) {
-                self.elements.deleteText.classList.add('spinner');
+                this.elements.deleteText.classList.add('spinner');
             } else {
-                self.elements.deleteText.classList.remove('spinner');
+                this.elements.deleteText.classList.remove('spinner');
             }
         },
-        clearResults() {
-            if (self.methods.inputAboveMinimum()) { self.elements.searchInput.value = ''; }
-            self.elements.resultList.removeEventListener('mouseover', _hoverClear);
-            DOM.clearChildren(self.elements.resultList);
-            self.setters.hasReplies(false);
-            if (self.options.clickClose) {
+        inputAboveMinimum: () => this.elements.searchInput.value.length >= this.options.minLength,
+        clearResults: () => {
+            if (this.methods.inputAboveMinimum()) { this.elements.searchInput.value = ''; }
+            this.elements.resultList.removeEventListener('mouseover', _hoverClear);
+            DOM.clearChildren(this.elements.resultList);
+            this.setters.hasReplies(false);
+            if (this.options.clickClose) {
                 document.body.removeEventListener('click', _hideResultsOnClick);
             }
         },
-        addNewResults() {
-            if (!self.methods.inputAboveMinimum()) { self.elements.searchInput.value = ''; }
-            self.elements.resultList.addEventListener('mouseover', _hoverClear);
-            DOM.clearChildren(self.elements.resultList);
-            self.setters.hasReplies(false);
-            if (self.options.clickClose) {
+        addNewResults: () => {
+            if (!this.methods.inputAboveMinimum()) { this.elements.searchInput.value = ''; }
+            this.elements.resultList.addEventListener('mouseover', _hoverClear);
+            DOM.clearChildren(this.elements.resultList);
+            this.setters.hasReplies(false);
+            if (this.options.clickClose) {
                 document.body.addEventListener('click', _hideResultsOnClick);
             }
         },
-        showResults() {
-            self.elements.resultList.style.display = 'block';
-            self.setters.toggleResults(true);
+        showResults: () => {
+            this.elements.resultList.style.display = 'block';
+            this.setters.toggleResults(true);
         },
         hideResults() {
-            self.elements.resultList.style.display = 'none';
-            self.setters.toggleResults(false);
+            this.elements.resultList.style.display = 'none';
+            this.setters.toggleResults(false);
         },
     };
 
-    this.on = function on(type, fn) {
+    this.on = (type, fn) => {
         if (!this.events[type] || !fn) {
             console.warn('Event type not available on object or no function specified');
         } else {
@@ -174,7 +174,7 @@ function Dawa(element, options) {
         return this;
     };
 
-    this.off = function on(type, fn) {
+    this.off = (type, fn) => {
         if (!fn && !type) {
             console.warn('No function or type specified');
         } else if (!fn && this.events[type]) {
@@ -196,7 +196,11 @@ function Dawa(element, options) {
         return this;
     };
 
-    init(this);
+    this.methods.searchMultiple = extendSearchMultiple;
+    this.methods.searchSingle = extendSearchSingle;
+    this.methods.init = extendInit;
+
+    this.methods.init.call(this);
     element.appendChild(this.elements.searchbar);
 }
 

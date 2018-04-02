@@ -1,21 +1,20 @@
 import { get } from './utils';
 import { singleSearchUrl } from './parse';
 
-export default function searchSingle(self, meta, information) {
-    if (!self.events['search-final'].length) { return; }
-    console.log(meta);
+export default function searchSingle(meta, information) {
+    if (!this.events['search-final'].length) { return; }
 
     const url = singleSearchUrl(meta);
     if (!url) {
-        self.events['search-final'].forEach((fn) => {
+        this.events['search-final'].forEach((fn) => {
             fn({ meta, information, geometry: false });
         });
 
-        self.methods.clearResults();
+        this.methods.clearResults();
     } else {
-        self.methods.isLoading(true);
+        this.methods.isLoading(true);
         get(url, (requestError, response) => {
-            self.methods.isLoading(false);
+            this.methods.isLoading(false);
             if (requestError) {
                 console.warn(response);
                 return;
@@ -23,11 +22,11 @@ export default function searchSingle(self, meta, information) {
             try {
                 const geometry = JSON.parse(response);
 
-                self.events['search-final'].forEach((fn) => {
+                this.events['search-final'].forEach((fn) => {
                     fn({ meta, information, geometry });
                 });
 
-                self.methods.clearResults();
+                this.methods.clearResults();
             } catch (parseError) {
                 console.error(parseError);
             }
