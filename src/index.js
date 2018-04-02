@@ -4,7 +4,7 @@ import extendSearchSingle from './extendSearchSingle';
 import extendInit from './extendInit';
 import './css/dawa.css';
 
-function Dawa(element, options) {
+function Dawa(parent, options) {
     const self = this;
     this.options = {
         minLength: 3,
@@ -13,20 +13,20 @@ function Dawa(element, options) {
         reverseGeocode: true,
         fuzzy: true,
         themes: [
-            'adresser',
+            // 'adresser',
             'adgangsadresser',
-            'vejnavne',
-            'vejstykker',
+            // 'vejnavne',
+            // 'vejstykker',
             'supplerendebynavne',
             'postnumre',
             'sogne',
             'kommuner',
             'regioner',
-            'storkredse',
-            'retskredse',
-            'opstillingskredse',
-            'politikredse',
-            'ejerlav',
+            // 'storkredse',
+            // 'retskredse',
+            // 'opstillingskredse',
+            // 'politikredse',
+            // 'ejerlav',
             'stednavne',
         ],
     };
@@ -201,7 +201,7 @@ function Dawa(element, options) {
     this.methods.init = extendInit;
 
     this.methods.init.call(this);
-    element.appendChild(this.elements.searchbar);
+    document.querySelector(parent).appendChild(this.elements.searchbar);
 }
 
 export default Dawa;

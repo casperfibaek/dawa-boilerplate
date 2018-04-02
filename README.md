@@ -1,41 +1,48 @@
-# DAWA search boilerplate
+# DAWA search
 
 ## Description
-import dawa from './src/dawa';
-
 ```javascript
-const searchbar = dawa({
-    minLength: 3,           // default = 3
-    maxResults: 3,          // default = 3
-    multiLine: false,       // default = false
-    clickClose: true,       // default = true
-    reverseGeocode: true,   // default = true
+import Dawa from '../src/index';
+
+window.dawa = new Dawa('body', {
+    minLength: 3,
+    maxResults: 3,
+    clickClose: true,
+    reverseGeocode: true,
+    fuzzy: true,
     themes: [
-        // 'adresser',              // default = off
-        'stednavne',                // default = on
-        'adgangsadresser',          // default = on
-        // 'vejnavne',              // default = off
-        // 'supplerendebynavne',    // default = off
-        'postnumre',                // default = on
-        'kommuner',                 // default = on
-        'sogne',                    // default = on
+        // 'adresser',
+        'adgangsadresser',
+        // 'vejnavne',
+        // 'vejstykker',
+        'supplerendebynavne',
+        'postnumre',
+        'sogne',
+        'kommuner',
+        'regioner',
+        // 'storkredse',
+        // 'retskredse',
+        // 'opstillingskredse',
+        // 'politikredse',
+        // 'ejerlav',
+        'stednavne',
     ],
 });
-document.body.appendChild(searchbar);
 
-searchbar.addEventListener('final', (e) => {
+window.dawa.on('search-preliminairy', (e) => {
     console.log(e);
 });
 
-searchbar.addEventListener('preliminairy', (e) => {
+window.dawa.on('search-final', (e) => {
     console.log(e);
 });
 
-searchbar.addEventListener('geolocation-preliminairy', (e) => {
+window.dawa.on('geolocation-preliminairy', (e) => {
     console.log(e);
 });
 
-searchbar.addEventListener('geolocation-final', (e) => {
+window.dawa.on('geolocation-final', (e) => {
     console.log(e);
 });
+
 ```

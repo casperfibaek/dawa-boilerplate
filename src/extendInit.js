@@ -50,7 +50,7 @@ export default function init() {
             ]);
 
             this.events['geolocation-preliminairy'].forEach((fn) => {
-                fn({ information: false, geometry });
+                fn({ information: false, meta: false, geometry });
             });
 
             if (!this.options.reverseGeocode || !this.events['geolocation-final'].length) { return; }
@@ -66,7 +66,7 @@ export default function init() {
                     ]);
 
                     this.events['geolocation-final'].forEach((fn) => {
-                        fn({ information, geometry: geometryWithAttributes });
+                        fn({ information, meta: false, geometry: geometryWithAttributes });
                     });
                 } catch (parseError) {
                     console.error(parseError);
