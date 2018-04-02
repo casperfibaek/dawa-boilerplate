@@ -1,4 +1,4 @@
-import Dawa from '../src/index';
+import Dawa from '../src';
 
 window.dawa = new Dawa('body', {
     minLength: 3,

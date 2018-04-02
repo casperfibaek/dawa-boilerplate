@@ -6,13 +6,13 @@ export default function searchMultiple(searchValue) {
     let replies = 0;
     let counterRowID = 0;
 
-    this.methods.isLoading(true);
+    this._methods.isLoading(true);
     this.options.themes.forEach((theme) => {
         const autocompleteURL = parse.multiSearchUrl(theme, searchValue, this.options);
 
         const request = DOM.get(autocompleteURL, (requestError, response) => {
             replies += 1;
-            if (replies === this.options.themes.length) { this.methods.isLoading(false); }
+            if (replies === this.options.themes.length) { this._methods.isLoading(false); }
             if (requestError) {
                 if (response.type === 'abort') { return; }
                 console.warn(response);
@@ -49,11 +49,11 @@ export default function searchMultiple(searchValue) {
                 });
 
                 if (!this.getters.hasReplies()) {
-                    this.methods.addNewResults();
+                    this._methods.addNewResults();
                     this.setters.hasReplies(true);
                 }
 
-                this.elements.resultList.appendChild(fragment);
+                this._elements.resultList.appendChild(fragment);
             } catch (parseError) {
                 console.error(parseError);
             }
