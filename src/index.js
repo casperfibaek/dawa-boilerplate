@@ -1,10 +1,11 @@
 import * as DOM from './utils';
 import extendSearchMultiple from './extendSearchMultiple';
 import extendSearchSingle from './extendSearchSingle';
+import addLeaflet from './extendLeaflet';
 import extendInit from './extendInit';
 import './css/dawa.css';
 
-function Dawa(parent, options) {
+function Dawa(parent, options, map, mapStyle) {
     const self = this;
     this.options = {
         minLength: 3,
@@ -12,6 +13,7 @@ function Dawa(parent, options) {
         clickClose: true,
         reverseGeocode: true,
         fuzzy: true,
+        leaflet: true,
         themes: [
             // 'adresser',
             'adgangsadresser',
@@ -31,9 +33,16 @@ function Dawa(parent, options) {
         ],
     };
 
+    this._map = false;
+
     Object.keys(options).forEach((key) => {
         if (self.options[key]) { self.options[key] = options[key]; }
     });
+
+    if (this.options.leaflet && map && mapStyle && window.L) {
+        this.options.mapStyle = mapStyle;
+        this._map = map;
+    }
 
     this._state = {
         hasReplies: false,
@@ -152,9 +161,7 @@ function Dawa(parent, options) {
     };
 
     this.on = (type, fn) => {
-        if (!this._events[type] || !fn) {
-            console.warn('Event type not available on object or no function specified');
-        } else {
+        if (this._events[type] && fn) {
             let alreadyExists = false;
             for (let i = 0; i < this._events[type].length; i += 1) {
                 const event = this._events[type][i];
@@ -169,17 +176,15 @@ function Dawa(parent, options) {
             } else {
                 this._events[type].push(fn);
             }
+        } else {
+            console.warn('Event type not available on object or no function specified');
         }
 
         return this;
     };
 
     this.off = (type, fn) => {
-        if (!fn && !type) {
-            console.warn('No function or type specified');
-        } else if (!fn && this._events[type]) {
-            this._events[type] = [];
-        } else if (fn && this.events[type]) {
+        if (fn && this.events[type]) {
             let found = false;
             for (let i = 0; i < this._events[type].length; i += 1) {
                 if (fn === this._events[type][i]) {
@@ -192,12 +197,17 @@ function Dawa(parent, options) {
             if (!found) {
                 console.warn('The function was not found');
             }
+        } else if (!fn && this._events[type]) {
+            this._events[type] = [];
+        } else {
+            console.warn('Event type not available on object or no function specified');
         }
         return this;
     };
 
     this._methods.searchMultiple = extendSearchMultiple;
     this._methods.searchSingle = extendSearchSingle;
+    this._methods.addLeaflet = addLeaflet;
     this._methods.init = extendInit;
 
     this._methods.init.call(this);

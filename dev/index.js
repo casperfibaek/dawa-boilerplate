@@ -6,6 +6,7 @@ window.dawa = new Dawa('body', {
     clickClose: true,
     reverseGeocode: true,
     fuzzy: true,
+    leaflet: false,
     themes: [
         // 'adresser',
         'adgangsadresser',

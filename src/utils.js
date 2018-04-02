@@ -83,12 +83,12 @@ function clearClass(parent, classToRemove) {
 
 
 /**
- * Takes an URL, creates a GET requests and returns the data in a callback.
+ * Takes a URL, creates a GET requests and returns the data in a callback.
  * It is possible to include context with request.
  * @param {String} url The URL which will be requested.
  * @param {Function} callback The function which will be called when the request is completed.
- * The callback will have for format (false, response, context) if succeeeded.
- * The callback will have the format (true, error, context) if failed.
+ * The callback will have the format (false, response, context) if succeeeded.
+ * The callback will have the format (true, error, context) if failed or aborted.
  * @param {Any} context A context which will be return when the call is completed.
  * @return {!HTMLElement} The XMLHttpRequest, with all its prototypes. Meaning that it is abortable.
  */

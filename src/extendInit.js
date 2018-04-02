@@ -42,8 +42,7 @@ export default function init() {
         if (!this.events['geolocation-preliminairy'].length) { return; }
 
         navigator.geolocation.getCurrentPosition((position) => {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
+            const { latitude, longitude } = position.coords;
 
             const geometry = DOM.createGeojsonPoint({}, [
                 longitude, latitude,
@@ -122,4 +121,12 @@ export default function init() {
             this._methods.showResults();
         }
     });
+
+    if (this.options.leaflet) {
+        if (this._map && window.L) {
+            this._methods.addLeaflet.call(this);
+        } else {
+            console.warn('Could not add leafletIntegration. Map or L global unspecified.');
+        }
+    }
 }
